@@ -1,61 +1,58 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
+package main.java.main;
 
-package main;
-
-/**
- *
- * @author abhyu
- */
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-/**
- *
- * @author abhyu
- */
-import entities.User;
-import management.AuthenticationManager;
-import management.BillingManager;
-import management.InventoryManager;
-import java.util.Set;
+import main.java.entities.User;
+import main.java.management.AuthenticationManager;
+import main.java.management.BillingManager;
+import main.java.management.InventoryManager;
 import java.util.Scanner;
-import exceptions.*;
-import storage.InMemoryStorage; // Import InMemoryStorage
-import entities.Product;
+import main.java.exceptions.*;
+import main.java.storage.DBUtils; // Import DBUtils
+import main.java.entities.Product;
+import java.util.List;
+import java.util.Set;
 
 public class TechTroveCLI {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        // Initialize InMemoryStorage
-        InMemoryStorage storage = new InMemoryStorage();
+        DBUtils.createTables(); // Ensure tables exist before proceeding!
 
-        // Pre-populate with sample data
-        Product p1 = new Product("LAP001", "Dell XPS 13", "Dell", 5, 1299.99, "Laptop");
-        Product p2 = new Product("ACC001", "Laptop Charger", "Dell", 10, 39.99, "Accessory");
-        Product p3 = new Product("PHO001", "Samsung Galaxy S23", "Samsung", 3, 999.00, "Phone");
-        storage.getProducts().add(p1);
-        storage.getProducts().add(p2);
-        storage.getProducts().add(p3);
+        // Initialize Managers directly (no InMemoryStorage)
+        AuthenticationManager authManager = new AuthenticationManager();
+        InventoryManager inventoryManager = new InventoryManager();
+        BillingManager billingManager = new BillingManager();
 
-        User u1 = new User("admin", "password");
-        storage.getUsers().put("admin",u1);
+        //Optionally, populate database with initial data
+        if (inventoryManager.getProducts().isEmpty()) {
+            // Pre-populate with sample data
+            try{
+            inventoryManager.addProduct("LAP001", "Dell XPS 13", "Dell", 5, 1299.99, "Laptop");
+             inventoryManager.addProduct("ACC001", "Laptop Charger", "Dell", 10, 39.99, "Accessory");
+             inventoryManager.addProduct("PHO001", "Samsung Galaxy S23", "Samsung", 3, 999.00, "Phone");
+            } catch (IllegalArgumentException ex){
+                System.out.println(ex.getMessage());
+            }
+        }
 
-        // Inject InMemoryStorage into Managers
-        AuthenticationManager authManager = new AuthenticationManager(storage);
-        InventoryManager inventoryManager = new InventoryManager(storage);
-        BillingManager billingManager = new BillingManager(storage);
+        if (authManager.getUsers().isEmpty()) {
+              try {
+                  authManager.registerUser("admin", "password");
+              } catch (RegistrationException e) {
+                  System.out.println(e.getMessage());
+              }
+
+        }
+
 
         User loggedInUser = null;
 
-        // --- Sign In / Register Loop ---
         while (loggedInUser == null) {
-            System.out.println("Welcome to TechTrove!");
+            // ... (Sign-in/Register loop as before) ...
+            // Use authManager.registerUser(newUsername, newPassword)
+            // Use loggedInUser = authManager.loginUser(username, password)
+
+             System.out.println("Welcome to TechTrove!");
             System.out.println("1. Login");
             System.out.println("2. Register");
             System.out.println("3. Exit");
@@ -147,21 +144,30 @@ public class TechTroveCLI {
                     String productIdToSell = scanner.nextLine();
                     System.out.print("Enter quantity to sell: ");
                     int quantityToSell = Integer.parseInt(scanner.nextLine());
-                    inventoryManager.sellProduct(productIdToSell, quantityToSell);
+                    try{
+                         inventoryManager.sellProduct(productIdToSell, quantityToSell);
+                    } catch (InvalidProductIdException | InsufficientStockException e) {
+                        System.out.println(e.getMessage());
+                     }
+
                     break;
                 case "4":
                     System.out.print("Enter product ID to update: ");
                     String productIdToUpdate = scanner.nextLine();
                     System.out.print("Enter new quantity: ");
                     int newQuantity = Integer.parseInt(scanner.nextLine());
-                    inventoryManager.updateProductQuantity(productIdToUpdate, newQuantity);
+                    try{
+                        inventoryManager.updateProductQuantity(productIdToUpdate, newQuantity);
+                    } catch (InvalidProductIdException | InvalidQuantityException e){
+                        System.out.println(e.getMessage());
+                    }
                     break;
                 case "5":
                     System.out.print("Enter product ID for the transaction: ");
                     String transactionProductId = scanner.nextLine();
                     System.out.print("Enter quantity sold: ");
                     int transactionQuantitySold = Integer.parseInt(scanner.nextLine());
-                    billingManager.createTransaction(transactionProductId, transactionQuantitySold, loggedInUser.getUsername());
+                   billingManager.createTransaction(transactionProductId, transactionQuantitySold, loggedInUser.getUsername());
                     break;
                 case "6":
                     billingManager.listTransactions();
@@ -174,7 +180,7 @@ public class TechTroveCLI {
                     System.out.println("Exiting TechTrove.");
                     System.exit(0);
                 case "9":
-                    Set<String> categories = inventoryManager.getAllCategories();
+                  Set<String> categories = inventoryManager.getAllCategories();
                     System.out.println("Available Categories: " + categories);
                     break;
                 case "10":

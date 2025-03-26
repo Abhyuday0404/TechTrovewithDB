@@ -1,17 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package interfaces;
+package main.java.interfaces;
 
-/**
- *
- * @author abhyu
- */
-import entities.Product;
-import exceptions.CategoryNotFoundException;
-import exceptions.InvalidProductIdException;
-import exceptions.InsufficientStockException;
+import main.java.entities.Product;
+import main.java.exceptions.CategoryNotFoundException;
+import main.java.exceptions.InvalidProductIdException;
+import main.java.exceptions.InsufficientStockException;
 import java.util.List;
 
 public interface ProductManagement {

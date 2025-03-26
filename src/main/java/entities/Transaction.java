@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package entities;
+package main.java.entities;
 
-/**
- *
- * @author abhyu
- */
 import java.util.Date;
 
 public class Transaction {
@@ -23,6 +15,26 @@ public class Transaction {
         this.quantitySold = quantitySold;
         this.saleDate = saleDate;
         this.userId = userId;
+    }
+
+     public Date getSaleDate() {
+        return saleDate;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public int getQuantitySold() {
+        return quantitySold;
+    }
+
+    public String getUserId() {
+        return userId;
     }
 
     @Override

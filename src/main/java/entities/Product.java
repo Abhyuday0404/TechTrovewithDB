@@ -1,27 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-package entities;
+package main.java.entities;
 
-/**
- *
- * @author abhyu
- */
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-//package entities;
-
-/**
- *
- * @author abhyu
- */
-
-import exceptions.InsufficientStockException;
-
-import exceptions.InsufficientStockException;
+import main.java.exceptions.InsufficientStockException;
 
 public class Product {
     private String productId;

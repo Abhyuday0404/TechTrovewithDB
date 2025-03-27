@@ -44,8 +44,8 @@ public class AuthenticationManager {
     }
 
     public User loginUser(String username, String password) throws AuthenticationException {
-        Map<String, User> users = getUsers();
-        User user = users.get(username);
+        Map users = getUsers();
+        User user = (User) users.get(username);
         if (user != null && user.checkPassword(password)) {
             System.out.println("Login successful!");
             return user;
@@ -54,8 +54,8 @@ public class AuthenticationManager {
         }
     }
 
-    public Map<String, User> getUsers() {
-        Map<String, User> users = new HashMap<>();
+    public Map getUsers() {
+        Map users = new HashMap();
         String sql = "SELECT username, password FROM users";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);

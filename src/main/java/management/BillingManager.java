@@ -18,52 +18,54 @@ import java.util.UUID;
 
 public class BillingManager {
 
-    public void createTransaction(String productId, int quantitySold, String userId) {
-        try {
-            Product product = findProductById(productId);
-            int currentQuantity = getProductQuantity(productId);
+    // In BillingManager.java , createTransaction method
 
-            if (currentQuantity < quantitySold) {
-                throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
-            }
+public void createTransaction(String productId, int quantitySold, String userId) {
+    try {
+        Product product = findProductById(productId);
+        int currentQuantity = getProductQuantity(productId);
 
-            String transactionId = UUID.randomUUID().toString();
-            Date saleDate = new Date(); // Current date/time
-            Transaction transaction = new Transaction(transactionId, productId, quantitySold, saleDate, userId);
+        if (currentQuantity < quantitySold) {
+            throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
+        }
 
-            String sql = "INSERT INTO transactions (transactionId, productId, quantitySold, saleDate, userId) VALUES (?, ?, ?, ?, ?)";
-            try (Connection conn = DBUtils.getConnection();
-                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+        String transactionId = UUID.randomUUID().toString();
+        Date saleDate = new Date(); // Current date/time
+        Transaction transaction = new Transaction(transactionId, productId, quantitySold, saleDate, userId);
 
-                stmt.setString(1, transaction.getTransactionId());
-                stmt.setString(2, transaction.getProductId());
-                stmt.setInt(3, transaction.getQuantitySold());
-                stmt.setTimestamp(4, new Timestamp(transaction.getSaleDate().getTime()));
-                stmt.setString(5, transaction.getUserId());
+        String sql = "INSERT INTO transactions (transactionId, productId, quantitySold, saleDate, userId) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DBUtils.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-                int affectedRows = stmt.executeUpdate();
-                if (affectedRows > 0) {
-                    int newQuantity = currentQuantity - quantitySold;
-                    if (updateProductQuantity(productId, newQuantity)) {
-                        System.out.println("Transaction created successfully. Transaction ID: " + transactionId);
-                    } else {
-                        System.out.println("Failed to update product quantity. Rolling back transaction.");
-                        // You would need to implement a deleteTransaction() method in InMemoryStorage
-                    }
+            stmt.setString(1, transaction.getTransactionId());
+            stmt.setString(2, transaction.getProductId());
+            stmt.setInt(3, transaction.getQuantitySold());
+            stmt.setTimestamp(4, new Timestamp(transaction.getSaleDate().getTime()));
+            stmt.setString(5, transaction.getUserId());
 
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows > 0) {
+                int newQuantity = currentQuantity - quantitySold;
+                if (updateProductQuantity(productId, newQuantity)) {
+                    System.out.println("Transaction created successfully. Transaction ID: " + transactionId);
                 } else {
-                    System.out.println("Failed to create transaction.");
+                    System.out.println("Failed to update product quantity. Rolling back transaction.");
+                    // You would need to implement a deleteTransaction() method in InMemoryStorage
                 }
 
-
-            } catch (SQLException e) {
-                System.err.println("Error adding transaction: " + e.getMessage());
+            } else {
+                System.out.println("Failed to create transaction.");
             }
 
-        } catch (InvalidProductIdException | InsufficientStockException e) {
-            System.out.println(e.getMessage());
+
+        } catch (SQLException e) {
+            System.err.println("Error adding transaction: " + e.getMessage());
         }
+
+    } catch (InvalidProductIdException | InsufficientStockException e) {
+        System.out.println(e.getMessage());
     }
+}
 
     public List<Transaction> listTransactions() {
         List<Transaction> transactions = new ArrayList<>();

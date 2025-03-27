@@ -28,13 +28,13 @@ public class TechTroveCLI {
             // Pre-populate with sample data
             try{
             //First create an Admin user to associate product to
-            authManager.registerUser("Dell", "password");  // <--- ADD THESE LINES
-            authManager.registerUser("Samsung", "password"); // <--- ADD THESE LINES
+            authManager.registerUser("Dell", "password");
+            authManager.registerUser("Samsung", "password");
 
             inventoryManager.addProduct("LAP001", "Dell XPS 13", "Dell", 5, 1299.99, "Laptop");
              inventoryManager.addProduct("ACC001", "Laptop Charger", "Dell", 10, 39.99, "Accessory");
              inventoryManager.addProduct("PHO001", "Samsung Galaxy S23", "Samsung", 3, 999.00, "Phone");
-            } catch (IllegalArgumentException | RegistrationException ex){  // catch both exceptions
+            } catch (IllegalArgumentException | RegistrationException ex){
                 System.out.println(ex.getMessage());
             }
         }
@@ -106,10 +106,10 @@ public class TechTroveCLI {
             System.out.println("4. Update Product Quantity");
             System.out.println("5. Create Transaction");
             System.out.println("6. List Transactions");
-            System.out.println("7. Logout");
-            System.out.println("8. Exit");
-            System.out.println("9. List Categories");
-            System.out.println("10. Check Stock Alerts");
+           // System.out.println("7. Logout");  <--- Removed Logout Option
+            System.out.println("7. Exit");       // Shifted Exit up one
+            System.out.println("8. List Categories");     // Shifted List Categories up one
+            System.out.println("9. Check Stock Alerts");  // Shifted Stock Alerts up one
 
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
@@ -124,13 +124,25 @@ public class TechTroveCLI {
                         System.out.println(e.getMessage());
                     }
                     break;
-                case "2":
+                 case "2":
                     System.out.print("Enter product ID: ");
                     String productId = scanner.nextLine();
                     System.out.print("Enter product name: ");
                     String name = scanner.nextLine();
                     System.out.print("Enter seller: ");
                     String seller = scanner.nextLine();
+                    // check if the seller already exist or not if not create a user with the provided username
+                    // and random password and add him to the database.
+                    if(DBUtils.userExists(seller)){
+                       System.out.println("User "+seller+" already exist.");
+                    } else {
+                        try{
+                            authManager.registerUser(seller, "random_password"); // you can use a random password.
+                        } catch (RegistrationException ex){
+                          System.out.println(ex.getMessage());
+                        }
+
+                    }
                     System.out.print("Enter quantity: ");
                     int quantity = Integer.parseInt(scanner.nextLine());
                     System.out.print("Enter rate: ");
@@ -150,6 +162,9 @@ public class TechTroveCLI {
                     int quantityToSell = Integer.parseInt(scanner.nextLine());
                     try{
                          inventoryManager.sellProduct(productIdToSell, quantityToSell);
+                         // Add transaction to list after successful sale <-----Add Tranactions now
+                         billingManager.createTransaction(productIdToSell, quantityToSell, loggedInUser.getUsername());
+
                     } catch (InvalidProductIdException | InsufficientStockException e) {
                         System.out.println(e.getMessage());
                      }
@@ -174,20 +189,29 @@ public class TechTroveCLI {
                    billingManager.createTransaction(transactionProductId, transactionQuantitySold, loggedInUser.getUsername());
                     break;
                 case "6":
-                    billingManager.listTransactions();
+                    List<main.java.entities.Transaction> transactions = billingManager.listTransactions();
+
+                     if (transactions.isEmpty()) {
+                        System.out.println("No transactions found.");
+                         } else {
+                          System.out.println("--- Transactions ---");
+                           for (main.java.entities.Transaction transaction : transactions) {
+                            System.out.println(transaction); // Assuming Transaction has a meaningful toString()
+                            }
+                          System.out.println("--- End of Transactions ---");
+                             }
                     break;
+                 //Shifted
                 case "7":
-                    loggedInUser = null;
-                    System.out.println("Logged out.");
-                    break;
-                case "8":
                     System.out.println("Exiting TechTrove.");
                     System.exit(0);
-                case "9":
+                 //Shifted
+                case "8":
                   Set<String> categories = inventoryManager.getAllCategories();
                     System.out.println("Available Categories: " + categories);
                     break;
-                case "10":
+                 //Shifted
+                case "9":
                     inventoryManager.checkStockLevels();
                     break;
                 default:

@@ -4,14 +4,14 @@ import java.sql.*;
 import java.util.Scanner;
 
 public class DBUtils {
-    private static final String DB_HOST;
+    private static String DB_HOST;
     private static final String DB_NAME = "techtrove_db";
-    private static final String DB_USER;
-    private static final String DB_PASSWORD;
+    private static String DB_USER;
+    private static String DB_PASSWORD;
     private static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
     private static final Scanner scanner = new Scanner(System.in);
 
-    static {
+    public static void initializeDatabase() {
         try {
             System.out.println("Enter database host (e.g., localhost:3306):");
             DB_HOST = scanner.nextLine();

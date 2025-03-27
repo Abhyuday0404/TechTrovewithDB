@@ -32,7 +32,7 @@ public class AuthenticationManager {
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("User registered successfully.");
+                //System.out.println("User registered successfully."); //Comment this line
                 return true;
             } else {
                 throw new RegistrationException("Failed to register user.");

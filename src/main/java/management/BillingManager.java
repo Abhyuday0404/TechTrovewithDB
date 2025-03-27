@@ -68,7 +68,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
 }
 
     public List<Transaction> listTransactions() {
-        List<Transaction> transactions = new ArrayList<>();
+        List<Transaction> transactions = new ArrayList<Transaction>(); // Diamond operator removed
         String sql = "SELECT transactionId, productId, quantitySold, saleDate, userId FROM transactions";
         try (Connection conn = DBUtils.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);

@@ -4,10 +4,10 @@ import main.java.entities.User;
 import main.java.management.AuthenticationManager;
 import main.java.management.BillingManager;
 import main.java.management.InventoryManager;
-import main.java.management.ReviewsManager;  // Import ReviewsManager
+import main.java.management.ReviewsManager;
 import java.util.Scanner;
 import main.java.exceptions.*;
-import main.java.storage.DBUtils; // Import DBUtils
+import main.java.storage.DBUtils;
 import main.java.entities.Product;
 import main.java.entities.Review;
 import java.util.List;
@@ -18,51 +18,51 @@ public class TechTroveCLI {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        DBUtils.createTables(); // Ensure tables exist before proceeding!
+        // IMPORTANT: Initialize the database *BEFORE* anything else.
+        DBUtils.initializeDatabase();
 
-        // Initialize Managers directly (no InMemoryStorage)
+        // Initialize Managers
         AuthenticationManager authManager = new AuthenticationManager();
         InventoryManager inventoryManager = new InventoryManager();
         BillingManager billingManager = new BillingManager();
-        ReviewsManager reviewsManager = new ReviewsManager(); // Initialize ReviewsManager
+        ReviewsManager reviewsManager = new ReviewsManager();
 
-
-        //Optionally, populate database with initial data
-        if (inventoryManager.getProducts().isEmpty()) {
+         //Optionally, populate database with initial data
+        if (inventoryManager.getProducts().isEmpty() && authManager.getUsers().isEmpty()) {   //Check if data exists
             // Pre-populate with sample data
             try{
             //First create an Admin user to associate product to
             authManager.registerUser("Dell", "password");
             authManager.registerUser("Samsung", "password");
+             authManager.registerUser("admin", "password");
+              authManager.registerUser("user1", "password");
+               authManager.registerUser("Microsoft", "password");
 
             inventoryManager.addProduct("LAP001", "Dell XPS 13", "Dell", 5, 1299.99, "Laptop");
              inventoryManager.addProduct("ACC001", "Laptop Charger", "Dell", 10, 39.99, "Accessory");
              inventoryManager.addProduct("PHO001", "Samsung Galaxy S23", "Samsung", 3, 999.00, "Phone");
-            } catch (IllegalArgumentException | RegistrationException ex){
+            } catch (RegistrationException | IllegalArgumentException ex){
                 System.out.println(ex.getMessage());
             }
         }
 
-        if (authManager.getUsers().isEmpty()) {
-              try {
-                  authManager.registerUser("admin", "password");
-                   authManager.registerUser("user1", "password");  //Sample USer for demo
-              } catch (RegistrationException e) {
-                  System.out.println(e.getMessage());
-              }
+        //if (authManager.getUsers().isEmpty()) {
+         //     try {
+          //        authManager.registerUser("admin", "password");
+           //        authManager.registerUser("user1", "password");  //Sample USer for demo
+            //  } catch (RegistrationException e) {
+            //      System.out.println(e.getMessage());
+            //  }
 
-        }
+        //}
 
-        populateDummyData(authManager, inventoryManager, billingManager, reviewsManager); // Populate dummy data
+
+        populateDummyData(authManager, inventoryManager, billingManager, reviewsManager);
 
         User loggedInUser = null;
 
         while (loggedInUser == null) {
-            // ... (Sign-in/Register loop as before) ...
-            // Use authManager.registerUser(newUsername, newPassword)
-            // Use loggedInUser = authManager.loginUser(username, password)
-
-             System.out.println("Welcome to TechTrove!");
+            System.out.println("Welcome to TechTrove Username:admin Password:password!");
             System.out.println("1. Login");
             System.out.println("2. Register");
             System.out.println("3. Exit");
@@ -90,18 +90,24 @@ public class TechTroveCLI {
                     try {
                         authManager.registerUser(newUsername, newPassword);
                     } catch (RegistrationException e) {
-                        System.out.println(e.getMessage());
+                         if (e.getMessage().equals("Username already exists.")) {   //Handle username exist exception
+                             System.out.println(e.getMessage() + " Please choose a different username.");
+                         } else {
+                            System.out.println(e.getMessage());  //Other registration errors
+                         }
+
                     }
                     break;
                 case "3":
                     System.out.println("Exiting TechTrove.");
                     System.exit(0);
+                    break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
         }
 
-        // --- Main Application Loop (After Login) ---
+        // Main Application Loop
         System.out.println("\nWelcome, " + loggedInUser.getUsername() + "!");
 
         while (true) {
@@ -112,12 +118,11 @@ public class TechTroveCLI {
             System.out.println("4. Update Product Quantity");
             System.out.println("5. Create Transaction");
             System.out.println("6. List Transactions");
-           // System.out.println("7. Logout");  <--- Removed Logout Option
-            System.out.println("7. Exit");       // Shifted Exit up one
-            System.out.println("8. List Categories");     // Shifted List Categories up one
-            System.out.println("9. Check Stock Alerts");  // Shifted Stock Alerts up one
-             System.out.println("10. Add Review for a Seller");  // add review seller option
-            System.out.println("11. List Reviews for a Seller"); // List of seller reviews
+            System.out.println("7. Exit");
+            System.out.println("8. List Categories");
+            System.out.println("9. Check Stock Alerts");
+            System.out.println("10. Add Review for a Seller");
+            System.out.println("11. List Reviews for a Seller");
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
 
@@ -131,25 +136,24 @@ public class TechTroveCLI {
                         System.out.println(e.getMessage());
                     }
                     break;
-                 case "2":
+                case "2":
                     System.out.print("Enter product ID: ");
                     String productId = scanner.nextLine();
                     System.out.print("Enter product name: ");
                     String name = scanner.nextLine();
                     System.out.print("Enter seller: ");
                     String seller = scanner.nextLine();
-                    // check if the seller already exist or not if not create a user with the provided username
-                    // and random password and add him to the database.
-                    if(DBUtils.userExists(seller)){
-                       System.out.println("User "+seller+" already exist.");
-                    } else {
-                        try{
-                            authManager.registerUser(seller, "random_password"); // you can use a random password.
-                        } catch (RegistrationException ex){
-                          System.out.println(ex.getMessage());
-                        }
 
+                    if (DBUtils.userExists(seller)) {
+                        System.out.println("User " + seller + " already exists.");
+                    } else {
+                        try {
+                            authManager.registerUser(seller, "random_password");
+                        } catch (RegistrationException ex) {
+                            System.out.println(ex.getMessage());
+                        }
                     }
+
                     System.out.print("Enter quantity: ");
                     int quantity = Integer.parseInt(scanner.nextLine());
                     System.out.print("Enter rate: ");
@@ -167,24 +171,21 @@ public class TechTroveCLI {
                     String productIdToSell = scanner.nextLine();
                     System.out.print("Enter quantity to sell: ");
                     int quantityToSell = Integer.parseInt(scanner.nextLine());
-                    try{
-                         inventoryManager.sellProduct(productIdToSell, quantityToSell);
-                         // Add transaction to list after successful sale <-----Add Tranactions now
-                         billingManager.createTransaction(productIdToSell, quantityToSell, loggedInUser.getUsername());
-
+                    try {
+                        inventoryManager.sellProduct(productIdToSell, quantityToSell);
+                        billingManager.createTransaction(productIdToSell, quantityToSell, loggedInUser.getUsername());
                     } catch (InvalidProductIdException | InsufficientStockException e) {
                         System.out.println(e.getMessage());
-                     }
-
+                    }
                     break;
                 case "4":
                     System.out.print("Enter product ID to update: ");
                     String productIdToUpdate = scanner.nextLine();
                     System.out.print("Enter new quantity: ");
                     int newQuantity = Integer.parseInt(scanner.nextLine());
-                    try{
+                    try {
                         inventoryManager.updateProductQuantity(productIdToUpdate, newQuantity);
-                    } catch (InvalidProductIdException | InvalidQuantityException e){
+                    } catch (InvalidProductIdException | InvalidQuantityException e) {
                         System.out.println(e.getMessage());
                     }
                     break;
@@ -193,36 +194,32 @@ public class TechTroveCLI {
                     String transactionProductId = scanner.nextLine();
                     System.out.print("Enter quantity sold: ");
                     int transactionQuantitySold = Integer.parseInt(scanner.nextLine());
-                   billingManager.createTransaction(transactionProductId, transactionQuantitySold, loggedInUser.getUsername());
+                    billingManager.createTransaction(transactionProductId, transactionQuantitySold, loggedInUser.getUsername());
                     break;
                 case "6":
                     List<main.java.entities.Transaction> transactions = billingManager.listTransactions();
-
-                     if (transactions.isEmpty()) {
+                    if (transactions.isEmpty()) {
                         System.out.println("No transactions found.");
-                         } else {
-                          System.out.println("--- Transactions ---");
-                           for (main.java.entities.Transaction transaction : transactions) {
-                            System.out.println(transaction); // Assuming Transaction has a meaningful toString()
-                            }
-                          System.out.println("--- End of Transactions ---");
-                             }
+                    } else {
+                        System.out.println("--- Transactions ---");
+                        for (main.java.entities.Transaction transaction : transactions) {
+                            System.out.println(transaction);
+                        }
+                        System.out.println("--- End of Transactions ---");
+                    }
                     break;
-                 //Shifted
                 case "7":
                     System.out.println("Exiting TechTrove.");
                     System.exit(0);
-                 //Shifted
+                    break;
                 case "8":
-                  Set<String> categories = inventoryManager.getAllCategories();
+                    Set<String> categories = inventoryManager.getAllCategories();
                     System.out.println("Available Categories: " + categories);
                     break;
-                 //Shifted
                 case "9":
                     inventoryManager.checkStockLevels();
                     break;
-
-       case "10":  // Add Review
+                case "10":
                     System.out.print("Enter seller's username to review: ");
                     String sellerToReview = scanner.nextLine();
                     System.out.print("Enter your rating (1-5): ");
@@ -231,30 +228,27 @@ public class TechTroveCLI {
                     String comment = scanner.nextLine();
 
                     boolean added = reviewsManager.addReview(sellerToReview, loggedInUser.getUsername(), rating, comment);
-                    if(added){
+                    if (added) {
                         System.out.println("Review added successfully!");
                     } else {
                         System.out.println("Failed to add review. Check console for errors.");
                     }
                     break;
-
-                case "11": // View Reviews
+                case "11":
                     System.out.print("Enter seller's username to view reviews: ");
                     String sellerToView = scanner.nextLine();
                     List<Review> reviews = reviewsManager.getReviewsForSeller(sellerToView);
 
-                     if (reviews.isEmpty()) {
+                    if (reviews.isEmpty()) {
                         System.out.println("No reviews found for " + sellerToView);
                     } else {
                         System.out.println("--- Reviews for " + sellerToView + " ---");
-                         for (Review review : reviews) {
+                        for (Review review : reviews) {
                             System.out.println(review);
-                         }
+                        }
                         System.out.println("--- End of Reviews ---");
                     }
                     break;
-
-
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
@@ -262,35 +256,52 @@ public class TechTroveCLI {
     }
 
 
-     private static void populateDummyData(AuthenticationManager authManager, InventoryManager inventoryManager, BillingManager billingManager, ReviewsManager reviewsManager) {
-        try {
-            // Add some sample users (sellers)
-            authManager.registerUser("Apple", "password"); // sample seller
-            authManager.registerUser("Sony", "password");  // another sample seller
-            authManager.registerUser("Bob", "password");
+    private static void populateDummyData(AuthenticationManager authManager, InventoryManager inventoryManager, BillingManager billingManager, ReviewsManager reviewsManager) {
+          try {
+             // Only proceed if no users or products are there.  This prevents duplicate registration on subsequent runs.
+                if (authManager.getUsers().isEmpty() && inventoryManager.getProducts().isEmpty()) {
+                    // Add some sample users (sellers)
 
-             //Add some products from other user so you can see other transactions and reviews
-            authManager.registerUser("Microsoft", "password");  // <--- ADD THESE LINES
+                   //Try to add Dell and other user but not Apple Sony and Bob
+                     try {
+                           authManager.registerUser("Dell", "password");
+                           authManager.registerUser("Samsung", "password");
+                           authManager.registerUser("Microsoft", "password");
+                             authManager.registerUser("admin", "password");
+                            authManager.registerUser("user1", "password");
+                      }catch (Exception e) {
+                             System.err.println("Error populating Dummy Data:" + e.getMessage());
 
-            inventoryManager.addProduct("TAB001", "Apple iPad", "Apple", 8, 799.00, "Tablet");
-             inventoryManager.addProduct("TV001", "Sony Bravia OLED", "Sony", 4, 1799.00, "TV");
+                        }
 
-            //Add products and transaction for user Bob
-            inventoryManager.addProduct("BOB001", "Sample Product of Bob", "Bob", 4, 100, "Sample Category");
 
-            // Create dummy transactions
-             billingManager.createTransaction("LAP001", 1, "admin"); // Sell 1 Dell laptop
-             billingManager.createTransaction("PHO001", 1, "user1"); // Sell 1 Phone
+                     try {
 
-            //Add a new transation with Bob
-              billingManager.createTransaction("BOB001", 1, "user1");
 
-            // Add some dummy reviews
-            reviewsManager.addReview("Apple", "user1", 4, "Great tablets!");
-            reviewsManager.addReview("Sony", "admin", 5, "Excellent picture quality.");
-               reviewsManager.addReview("Bob", "admin", 5, "Bob does great business");
+                         inventoryManager.addProduct("TAB001", "Apple iPad", "Dell", 8, 799.00, "Tablet");
+                            inventoryManager.addProduct("TV001", "Sony Bravia OLED", "Dell", 4, 1799.00, "TV");
+                            inventoryManager.addProduct("LAP001", "Dell XPS 13", "Dell", 5, 1299.99, "Laptop"); // Ensure products exist
+                            inventoryManager.addProduct("PHO001", "Samsung Galaxy S23", "Samsung", 3, 999.00, "Phone");
+                            inventoryManager.addProduct("BOB001", "Sample Product of Bob", "Dell", 4, 100, "Sample Category");
+                        }catch (Exception e) {
+                             System.err.println("Error populating Dummy Data:" + e.getMessage());
 
-        } catch (RegistrationException | IllegalArgumentException e) {
+                        }
+                      try{
+                           reviewsManager.addReview("Dell", "admin", 5, "Bob does great business");
+                      }catch (Exception e) {
+                             System.err.println("Error populating Dummy Data:" + e.getMessage());
+
+                        }
+
+
+
+                 }
+
+
+
+
+        } catch (  IllegalArgumentException e) {
             System.err.println("Error populating dummy data: " + e.getMessage());
         }
     }

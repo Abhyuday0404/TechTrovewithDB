@@ -38,7 +38,7 @@ public class ReviewsManager {
     }
 
     public List<Review> getReviewsForSeller(String seller) {
-        List<Review> reviews = new ArrayList<>();
+        List<Review> reviews = new ArrayList<Review>(); // Diamond operator removed
         String sql = "SELECT reviewId, seller, reviewer, rating, comment, reviewDate FROM reviews WHERE seller = ?";
 
         try (Connection conn = DBUtils.getConnection();

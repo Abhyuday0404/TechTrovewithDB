@@ -60,7 +60,7 @@ public class InventoryManager implements ProductManagement {
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-                System.out.println("Product added successfully.");
+               // System.out.println("Product added successfully.");  //Comment this line
             } else {
                 System.out.println("Failed to add product.");
                 // Consider throwing an exception here for better error handling at a higher level

@@ -27,10 +27,14 @@ public class TechTroveCLI {
         if (inventoryManager.getProducts().isEmpty()) {
             // Pre-populate with sample data
             try{
+            //First create an Admin user to associate product to
+            authManager.registerUser("Dell", "password");  // <--- ADD THESE LINES
+            authManager.registerUser("Samsung", "password"); // <--- ADD THESE LINES
+
             inventoryManager.addProduct("LAP001", "Dell XPS 13", "Dell", 5, 1299.99, "Laptop");
              inventoryManager.addProduct("ACC001", "Laptop Charger", "Dell", 10, 39.99, "Accessory");
              inventoryManager.addProduct("PHO001", "Samsung Galaxy S23", "Samsung", 3, 999.00, "Phone");
-            } catch (IllegalArgumentException ex){
+            } catch (IllegalArgumentException | RegistrationException ex){  // catch both exceptions
                 System.out.println(ex.getMessage());
             }
         }

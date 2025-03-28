@@ -3,7 +3,7 @@ package main.java.storage;
 import java.sql.*;
 import java.util.Scanner;
 
-public class DBUtils {
+public class DatabaseConnection {
     private static String DB_HOST;
     private static final String DB_NAME = "techtrove_db";
     private static String DB_USER;
@@ -16,10 +16,10 @@ public class DBUtils {
             System.out.println("Enter database host (e.g., localhost:3306):");
             DB_HOST = scanner.nextLine();
 
-            System.out.println("Enter database username:");
+            System.out.println("Enter MYSQL username:");
             DB_USER = scanner.nextLine();
 
-            System.out.println("Enter database password:");
+            System.out.println("Enter MYSQL password:");
             DB_PASSWORD = scanner.nextLine();
 
             // Load JDBC driver
@@ -99,7 +99,7 @@ public class DBUtils {
             stmt.executeUpdate(createTransactionTableSQL);
             System.out.println("Table 'transactions' created or already exists.");
 
-            // In DBUtils.java , createTables() method
+            // In DatabaseConnection.java , createTables() method
             String createReviewsTableSQL = "CREATE TABLE IF NOT EXISTS reviews (" +
                     "reviewId INT AUTO_INCREMENT PRIMARY KEY, " +
                     "seller VARCHAR(255) NOT NULL, " + // The seller being reviewed

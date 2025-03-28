@@ -7,7 +7,7 @@ import main.java.management.InventoryManager;
 import main.java.management.ReviewsManager;
 import java.util.Scanner;
 import main.java.exceptions.*;
-import main.java.storage.DBUtils;
+import main.java.storage.DatabaseConnection;
 import main.java.entities.Product;
 import main.java.entities.Review;
 import java.util.List;
@@ -19,7 +19,7 @@ public class TechTroveCLI {
         Scanner scanner = new Scanner(System.in);
 
         // IMPORTANT: Initialize the database *BEFORE* anything else.
-        DBUtils.initializeDatabase();
+        DatabaseConnection.initializeDatabase();
 
         // Initialize Managers
         AuthenticationManager authManager = new AuthenticationManager();
@@ -62,7 +62,7 @@ public class TechTroveCLI {
         User loggedInUser = null;
 
         while (loggedInUser == null) {
-            System.out.println("Welcome to TechTrove Username:admin Password:password!");
+            System.out.println("Welcome to TechTrove ");
             System.out.println("1. Login");
             System.out.println("2. Register");
             System.out.println("3. Exit");
@@ -118,17 +118,18 @@ public class TechTroveCLI {
             System.out.println("4. Update Product Quantity");
             System.out.println("5. Create Transaction");
             System.out.println("6. List Transactions");
-            System.out.println("7. Exit");
-            System.out.println("8. List Categories");
-            System.out.println("9. Check Stock Alerts");
-            System.out.println("10. Add Review for a Seller");
-            System.out.println("11. List Reviews for a Seller");
+            System.out.println("7. List Categories");
+            System.out.println("8. Check Stock Alerts");
+            System.out.println("9. Add Review for a Seller");
+            System.out.println("10. List Reviews for a Seller");
+            System.out.println("11. Exit"); //Moved Exit to the last
+
             System.out.print("Enter your choice: ");
             String choice = scanner.nextLine();
 
             switch (choice) {
                 case "1":
-                    System.out.print("Enter category to list (or leave blank for all): ");
+                    System.out.print("Enter category to list (or press enter to show all products): ");
                     String categoryToList = scanner.nextLine();
                     try {
                         inventoryManager.listProducts(categoryToList);
@@ -144,7 +145,7 @@ public class TechTroveCLI {
                     System.out.print("Enter seller: ");
                     String seller = scanner.nextLine();
 
-                    if (DBUtils.userExists(seller)) {
+                    if (DatabaseConnection.userExists(seller)) {
                         System.out.println("User " + seller + " already exists.");
                     } else {
                         try {
@@ -209,17 +210,13 @@ public class TechTroveCLI {
                     }
                     break;
                 case "7":
-                    System.out.println("Exiting TechTrove.");
-                    System.exit(0);
-                    break;
-                case "8":
                     Set<String> categories = inventoryManager.getAllCategories();
                     System.out.println("Available Categories: " + categories);
                     break;
-                case "9":
+                case "8":
                     inventoryManager.checkStockLevels();
                     break;
-                case "10":
+                case "9":
                     System.out.print("Enter seller's username to review: ");
                     String sellerToReview = scanner.nextLine();
                     System.out.print("Enter your rating (1-5): ");
@@ -234,7 +231,7 @@ public class TechTroveCLI {
                         System.out.println("Failed to add review. Check console for errors.");
                     }
                     break;
-                case "11":
+                case "10":
                     System.out.print("Enter seller's username to view reviews: ");
                     String sellerToView = scanner.nextLine();
                     List<Review> reviews = reviewsManager.getReviewsForSeller(sellerToView);
@@ -249,8 +246,13 @@ public class TechTroveCLI {
                         System.out.println("--- End of Reviews ---");
                     }
                     break;
+                case "11":
+                    System.out.println("Exiting TechTrove.");
+                    System.exit(0);
+                    break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
+
             }
         }
     }

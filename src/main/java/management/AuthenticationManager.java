@@ -3,7 +3,7 @@ package main.java.management;
 import main.java.entities.User;
 import main.java.exceptions.AuthenticationException;
 import main.java.exceptions.RegistrationException;
-import main.java.storage.DBUtils;
+import main.java.storage.DatabaseConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -24,7 +24,7 @@ public class AuthenticationManager {
         }
 
         String sql = "INSERT INTO users (username, password) VALUES (?, ?)";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
@@ -57,7 +57,7 @@ public class AuthenticationManager {
     public Map getUsers() {
         Map users = new HashMap();
         String sql = "SELECT username, password FROM users";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 

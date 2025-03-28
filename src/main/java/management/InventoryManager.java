@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 import main.java.exceptions.*;
-import main.java.storage.DBUtils;
+import main.java.storage.DatabaseConnection;
 
 public class InventoryManager implements ProductManagement {
     private static final int LOW_STOCK_THRESHOLD = 3;
@@ -20,7 +20,7 @@ public class InventoryManager implements ProductManagement {
     public List<Product> getProducts() {
         List<Product> products = new ArrayList<>();
         String sql = "SELECT productId, name, seller, quantity, rate, category FROM products";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -48,7 +48,7 @@ public class InventoryManager implements ProductManagement {
             throw new IllegalArgumentException("Quantity cannot be negative.");
         }
         String sql = "INSERT INTO products (productId, name, seller, quantity, rate, category) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, productId);
@@ -113,7 +113,7 @@ public class InventoryManager implements ProductManagement {
     @Override
     public Product findProductById(String productId) throws InvalidProductIdException {
         String sql = "SELECT productId, name, seller, quantity, rate, category FROM products WHERE productId = ?";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, productId);
@@ -173,7 +173,7 @@ public class InventoryManager implements ProductManagement {
 
     public boolean updateProductQuantityInDatabase(String productId, int newQuantity) {
         String sql = "UPDATE products SET quantity = ? WHERE productId = ?";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, newQuantity);
@@ -189,7 +189,7 @@ public class InventoryManager implements ProductManagement {
 
      public int getProductQuantity(String productId) throws InvalidProductIdException {
         String sql = "SELECT quantity FROM products WHERE productId = ?";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, productId);

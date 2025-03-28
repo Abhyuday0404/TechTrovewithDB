@@ -4,7 +4,7 @@ import main.java.entities.Product;
 import main.java.entities.Transaction;
 import main.java.exceptions.InsufficientStockException;
 import main.java.exceptions.InvalidProductIdException;
-import main.java.storage.DBUtils;
+import main.java.storage.DatabaseConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,7 +34,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
         Transaction transaction = new Transaction(transactionId, productId, quantitySold, saleDate, userId);
 
         String sql = "INSERT INTO transactions (transactionId, productId, quantitySold, saleDate, userId) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, transaction.getTransactionId());
@@ -70,7 +70,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
     public List<Transaction> listTransactions() {
         List<Transaction> transactions = new ArrayList<Transaction>(); // Diamond operator removed
         String sql = "SELECT transactionId, productId, quantitySold, saleDate, userId FROM transactions";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
@@ -92,7 +92,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
 
     public Product findProductById(String productId) throws InvalidProductIdException {
         String sql = "SELECT productId, name, seller, quantity, rate, category FROM products WHERE productId = ?";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, productId);
@@ -118,7 +118,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
 
      public boolean updateProductQuantity(String productId, int newQuantity) {
         String sql = "UPDATE products SET quantity = ? WHERE productId = ?";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, newQuantity);
@@ -134,7 +134,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
 
      public int getProductQuantity(String productId) {
         String sql = "SELECT quantity FROM products WHERE productId = ?";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, productId);

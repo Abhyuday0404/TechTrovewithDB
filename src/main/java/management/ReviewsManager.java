@@ -1,7 +1,7 @@
 package main.java.management;
 
 import main.java.entities.Review;
-import main.java.storage.DBUtils;
+import main.java.storage.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,17 +10,17 @@ import java.util.List;
 public class ReviewsManager {
 
     public boolean addReview(String seller, String reviewer, int rating, String comment) {
-        if (!DBUtils.userExists(seller)) {
+        if (!DatabaseConnection.userExists(seller)) {
             System.err.println("Error: Seller '" + seller + "' does not exist.");
             return false;
         }
-        if (!DBUtils.userExists(reviewer)) {
+        if (!DatabaseConnection.userExists(reviewer)) {
             System.err.println("Error: Reviewer '" + reviewer + "' does not exist.");
             return false;
         }
 
         String sql = "INSERT INTO reviews (seller, reviewer, rating, comment) VALUES (?, ?, ?, ?)";
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, seller);
@@ -41,7 +41,7 @@ public class ReviewsManager {
         List<Review> reviews = new ArrayList<Review>(); // Diamond operator removed
         String sql = "SELECT reviewId, seller, reviewer, rating, comment, reviewDate FROM reviews WHERE seller = ?";
 
-        try (Connection conn = DBUtils.getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, seller);

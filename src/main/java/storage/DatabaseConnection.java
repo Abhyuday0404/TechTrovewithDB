@@ -11,18 +11,23 @@ public class DatabaseConnection {
     private static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
     private static final Scanner scanner = new Scanner(System.in);
 
+    // Setter methods for database credentials
+    public static void setDbHost(String dbHost) {
+        DB_HOST = dbHost;
+    }
+
+    public static void setDbUser(String dbUser) {
+        DB_USER = dbUser;
+    }
+
+    public static void setDbPassword(String dbPassword) {
+        DB_PASSWORD = dbPassword;
+    }
+
+
     public static void initializeDatabase() {
         try {
-            System.out.println("Enter database host (e.g., localhost:3306):");
-            DB_HOST = scanner.nextLine();
-
-            System.out.println("Enter MYSQL username:");
-            DB_USER = scanner.nextLine();
-
-            System.out.println("Enter MYSQL password:");
-            DB_PASSWORD = scanner.nextLine();
-
-            // Load JDBC driver
+           // Load JDBC driver
             Class.forName(JDBC_DRIVER);
 
             // Ensure the database is created before proceeding

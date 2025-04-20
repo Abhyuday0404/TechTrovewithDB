@@ -60,7 +60,7 @@ public class InventoryManager implements ProductManagement {
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows > 0) {
-               // System.out.println("Product added successfully.");  //Comment this line
+                // System.out.println("Product added successfully.");  //Comment this line
             } else {
                 System.out.println("Failed to add product.");
                 // Consider throwing an exception here for better error handling at a higher level
@@ -157,18 +157,18 @@ public class InventoryManager implements ProductManagement {
     }
 
     public void updateProductQuantity(String productId, int newQuantity) throws InvalidProductIdException, InvalidQuantityException {
-         Product product = findProductById(productId);
-         if (newQuantity < 0) {
-                throw new InvalidQuantityException("Quantity cannot be negative.");
-            }
+        Product product = findProductById(productId);
+        if (newQuantity < 0) {
+            throw new InvalidQuantityException("Quantity cannot be negative.");
+        }
 
         boolean updateSuccessful = updateProductQuantityInDatabase(productId, newQuantity);
-         if (updateSuccessful) {
-                System.out.println("Updated quantity of " + product.getName() + " to " + newQuantity);
-                checkStockLevels();
-            } else {
-                System.out.println("Failed to update quantity.");
-            }
+        if (updateSuccessful) {
+            System.out.println("Updated quantity of " + product.getName() + " to " + newQuantity);
+            checkStockLevels();
+        } else {
+            System.out.println("Failed to update quantity.");
+        }
     }
 
     public boolean updateProductQuantityInDatabase(String productId, int newQuantity) {
@@ -187,7 +187,7 @@ public class InventoryManager implements ProductManagement {
         }
     }
 
-     public int getProductQuantity(String productId) throws InvalidProductIdException {
+    public int getProductQuantity(String productId) throws InvalidProductIdException {
         String sql = "SELECT quantity FROM products WHERE productId = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -202,26 +202,27 @@ public class InventoryManager implements ProductManagement {
             }
         } catch (SQLException e) {
             System.err.println("Error getting product quantity: " + e.getMessage());
-           throw new InvalidProductIdException("Database error: " + e.getMessage()); // Re-throw as InvalidProductIdException
+            throw new InvalidProductIdException("Database error: " + e.getMessage()); // Re-throw as InvalidProductIdException
         }
     }
 
 
-    public void checkStockLevels() {
-        System.out.println("\n--- Stock Level Alerts ---");
+    public String checkStockLevels() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n--- Stock Level Alerts ---\n");
         boolean alertGenerated = false;
         List<Product> products = getProducts();
         for (Product product : products) {
             String alert = product.generateStockAlert(LOW_STOCK_THRESHOLD);
             if (alert != null) {
-                System.out.println(alert);
+                sb.append(alert).append("\n");
                 alertGenerated = true;
             }
         }
         if (!alertGenerated) {
-            System.out.println("No low stock alerts.");
+            sb.append("No low stock alerts.\n");
         }
-        System.out.println("--- End of Stock Level Alerts ---\n");
+        sb.append("--- End of Stock Level Alerts ---\n");
+        return sb.toString();
     }
-
 }

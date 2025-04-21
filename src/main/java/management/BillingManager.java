@@ -18,7 +18,7 @@ import java.util.UUID;
 
 public class BillingManager {
 
-    public void createTransaction(String productId, int quantitySold, String userId)  {
+    public void createTransaction(String productId, int quantitySold, String adminUsername)  {  //Change userId to adminUsername
         try {
             Product product = findProductById(productId);
             double unitPrice = product.getRate();
@@ -36,7 +36,7 @@ public class BillingManager {
             String billId = UUID.randomUUID().toString();
             Date saleDate = new Date();
 
-            String sql = "INSERT INTO bills (billId, productId, quantitySold, totalAmount, billDate, userId) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO bills (billId, productId, quantitySold, totalAmount, billDate, adminUsername) VALUES (?, ?, ?, ?, ?, ?)";  //Change userId to adminUsername
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -45,7 +45,7 @@ public class BillingManager {
                 stmt.setInt(3, quantitySold);
                 stmt.setDouble(4, totalAmount);
                 stmt.setTimestamp(5, new Timestamp(saleDate.getTime()));
-                stmt.setString(6, userId);
+                stmt.setString(6, adminUsername);  //Change userId to adminUsername
 
                 int affectedRows = stmt.executeUpdate();
                 if (affectedRows > 0) {
@@ -92,7 +92,7 @@ public class BillingManager {
 
     public List<Transaction> listTransactions() {
         List<Transaction> transactions = new ArrayList<Transaction>(); // Diamond operator removed
-        String sql = "SELECT billId, productId, quantitySold, billDate, userId FROM bills";  //Select from bills
+        String sql = "SELECT billId, productId, quantitySold, billDate, adminUsername FROM bills";  //Select from bills   //Change userId to adminUsername
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -103,7 +103,7 @@ public class BillingManager {
                         rs.getString("productId"),
                         rs.getInt("quantitySold"),
                         rs.getTimestamp("billDate"),
-                        rs.getString("userId")
+                        rs.getString("adminUsername")   //Change userId to adminUsername
                 );
                 transactions.add(transaction);
             }

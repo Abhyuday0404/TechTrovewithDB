@@ -22,12 +22,12 @@ public class StockPanel extends JPanel {
     private MainFrame mainFrame;
 
     public StockPanel(User loggedInUser, MainFrame mainFrame) {
-       this.loggedInUser = loggedInUser;
+        this.loggedInUser = loggedInUser;
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
         //Side Menu Bar
-           JPanel sidebarPanel = new JPanel();
+        JPanel sidebarPanel = new JPanel();
         sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
         sidebarPanel.setBackground(Color.BLACK);
         sidebarPanel.setPreferredSize(new Dimension(150, 0));
@@ -57,6 +57,16 @@ public class StockPanel extends JPanel {
 
         add(sidebarPanel, BorderLayout.WEST);
 
+        //Main panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel titleLabel = new JLabel("Stock Tracking - Low Stock Products");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contentPanel.add(titleLabel);
+
         // 1. Table Setup
         tableModel = new DefaultTableModel();
         tableModel.addColumn("ID");
@@ -68,9 +78,12 @@ public class StockPanel extends JPanel {
 
         productTable = new JTable(tableModel);
         JScrollPane tableScrollPane = new JScrollPane(productTable);
-        add(tableScrollPane, BorderLayout.CENTER);
+        contentPanel.add(tableScrollPane);  //Adding to scroll pane
 
         loadLowStockProducts();
+
+       add(contentPanel, BorderLayout.CENTER); // Add to center of stock panel
+
         makeButtonWork();  //Add function down below
     }
 
@@ -109,14 +122,13 @@ public class StockPanel extends JPanel {
         stockTrackingButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-               mainFrame.showStockPanel(loggedInUser, mainFrame);  //Load another code
+                mainFrame.showStockPanel(loggedInUser, mainFrame);  //Load another code
             }
         });
 
           inventoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-               // mainFrame.showInventoryPanel(null); //Need to check for the use of login user or not
                 mainFrame.showInventoryPanel(loggedInUser, mainFrame);
             }
         });

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main.java.ui;
 
 import main.java.entities.Review;
@@ -106,7 +101,6 @@ public class ReviewsPanel extends JPanel {
 
         displayArea.setText(sb.toString());
     }
-
 
     // Method to clear the input fields after adding a review
     private void clearInputs() {

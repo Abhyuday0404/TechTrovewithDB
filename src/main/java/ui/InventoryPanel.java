@@ -1,3 +1,4 @@
+
 package main.java.ui;
 
 import main.java.entities.Product;
@@ -172,8 +173,7 @@ public class InventoryPanel extends JPanel {
           inventoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-               // mainFrame.showInventoryPanel(null); //Need to check for the use of login user or not
-                mainFrame.showInventoryPanel(loggedInUser, mainFrame);
+              mainFrame.showInventoryPanel(loggedInUser, mainFrame);
             }
         });
 

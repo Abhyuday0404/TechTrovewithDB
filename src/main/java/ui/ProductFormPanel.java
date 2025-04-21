@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package main.java.ui;
 
 import main.java.management.InventoryManager;
@@ -11,6 +6,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.function.Supplier;
+import main.java.management.AuthenticationManager;  //Import Authentication Manager
+import main.java.storage.DatabaseConnection;  //Import Database
 
 public class ProductFormPanel extends JPanel {
 
@@ -56,12 +53,42 @@ public class ProductFormPanel extends JPanel {
                 String productId = productIdField.getText();
                 String name = nameField.getText();
                 String seller = sellerField.getText();
-                int quantity = Integer.parseInt(quantityField.getText());
-                double rate = Double.parseDouble(rateField.getText());
+                int quantity = 0;
+                double rate = 0.0;
+
+                try {
+                    quantity = Integer.parseInt(quantityField.getText());
+                    try {
+                        rate = Double.parseDouble(rateField.getText());
+                    }
+                    catch (NumberFormatException ne) {  //If Number Form
+                        JOptionPane.showMessageDialog(ProductFormPanel.this, "Rate cannot be an empty space", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                } catch (NumberFormatException err) {   //If its empty
+                    JOptionPane.showMessageDialog(ProductFormPanel.this, "Quantity cannot be an empty space", "Error", JOptionPane.ERROR_MESSAGE);
+                    return; // dont proceed if is error or is number problem
+                }
+
                 String category = categoryField.getText();
 
                 try {
-                    inventoryManager.addProduct(productId, name, seller, quantity, rate, category);
+                    //Add the User so that there is no conflict on the table.
+                    AuthenticationManager authManager = new AuthenticationManager();
+                    if(!authManager.sellerExists(seller)){ // Check that user
+                        try{  //Try to register to not encounter existing username
+                            authManager.registerSeller(seller);
+                        } catch(Exception ex) {  //Try to register to not encounter existing username
+                            JOptionPane.showMessageDialog(ProductFormPanel.this, "Failed: Can't save it. Problem with the Database Connection " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);  //There is a dupe in the username already so catch so it can print.
+                            return;
+                        }
+
+                    }
+                   if(!DatabaseConnection.sellerExists(seller)){ //DoubleCheck if database exists since i have had problems with SQL
+
+                   }
+                    inventoryManager.addProduct(productId, name, seller, quantity, rate, category);  //Finally Add
                     JOptionPane.showMessageDialog(ProductFormPanel.this, "Product added successfully!");
                     refreshCallback.run(); // Refresh the inventory list
                 } catch (IllegalArgumentException ex) {

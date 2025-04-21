@@ -75,15 +75,22 @@ public class DatabaseConnection {
       // Ensure Foreign Key Checks are enabled
       stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
 
-      // Create users table FIRST
-      String createUserTableSQL =
-          "CREATE TABLE IF NOT EXISTS users ("
+      // Create admins table
+      String createAdminsTableSQL =
+          "CREATE TABLE IF NOT EXISTS admins ("
               + "username VARCHAR(255) PRIMARY KEY, "
               + "password VARCHAR(255) NOT NULL)";
-      stmt.executeUpdate(createUserTableSQL);
-      System.out.println("Table 'users' created or already exists.");
+      stmt.executeUpdate(createAdminsTableSQL);
+      System.out.println("Table 'admins' created or already exists.");
 
-      // Create products table with foreign key
+      // Create sellers table
+      String createSellersTableSQL =
+          "CREATE TABLE IF NOT EXISTS sellers ("
+              + "sellerName VARCHAR(255) PRIMARY KEY)";
+      stmt.executeUpdate(createSellersTableSQL);
+      System.out.println("Table 'sellers' created or already exists.");
+
+      // Create products table with foreign key referencing sellers
       String createProductTableSQL =
           "CREATE TABLE IF NOT EXISTS products ("
               + "productId VARCHAR(255) PRIMARY KEY, "
@@ -92,7 +99,7 @@ public class DatabaseConnection {
               + "quantity INT NOT NULL CHECK (quantity >= 0), "
               + "rate DECIMAL(10, 2) NOT NULL CHECK (rate >= 0), "
               + "category VARCHAR(255) NOT NULL, "
-              + "FOREIGN KEY (seller) REFERENCES users(username) ON DELETE CASCADE)";
+              + "FOREIGN KEY (seller) REFERENCES sellers(sellerName) ON DELETE CASCADE)";
       stmt.executeUpdate(createProductTableSQL);
       System.out.println("Table 'products' created or already exists.");
 
@@ -103,13 +110,12 @@ public class DatabaseConnection {
               + "productId VARCHAR(255) NOT NULL, "
               + "quantitySold INT NOT NULL CHECK (quantitySold > 0), "
               + "saleDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-              + "userId VARCHAR(255) NOT NULL, "
+              + "adminUsername VARCHAR(255) NOT NULL, " // Changed userId to adminUsername to reference ADMIN table for easy use, you can also create SELLERs for it if you want.
               + "FOREIGN KEY (productId) REFERENCES products(productId) ON DELETE CASCADE, "
-              + "FOREIGN KEY (userId) REFERENCES users(username) ON DELETE CASCADE)";
+              + "FOREIGN KEY (adminUsername) REFERENCES admins(username) ON DELETE CASCADE)";
       stmt.executeUpdate(createTransactionTableSQL);
       System.out.println("Table 'transactions' created or already exists.");
 
-      // In DatabaseConnection.java , createTables() method
       String createReviewsTableSQL =
           "CREATE TABLE IF NOT EXISTS reviews ("
               + "reviewId INT AUTO_INCREMENT PRIMARY KEY, "
@@ -118,9 +124,8 @@ public class DatabaseConnection {
               + "rating INT NOT NULL CHECK (rating BETWEEN 1 AND 5), "
               + "comment TEXT, "
               + "reviewDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-              + "FOREIGN KEY (seller) REFERENCES users(username) ON DELETE CASCADE, "
-              + "FOREIGN KEY (reviewer) REFERENCES users(username) ON DELETE CASCADE" // Enforce
-              // existing users
+              + "FOREIGN KEY (seller) REFERENCES sellers(sellerName) ON DELETE CASCADE, "
+              + "FOREIGN KEY (reviewer) REFERENCES admins(username) ON DELETE CASCADE" // Enforce existing users
               + ")";
 
       stmt.executeUpdate(createReviewsTableSQL);
@@ -133,30 +138,53 @@ public class DatabaseConnection {
               + "quantitySold INT NOT NULL CHECK (quantitySold > 0), "
               + "totalAmount DECIMAL(10, 2) NOT NULL, "
               + "billDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-              + "userId VARCHAR(255) NOT NULL, "
+              + "adminUsername VARCHAR(255) NOT NULL, "
               + "FOREIGN KEY (productId) REFERENCES products(productId) ON DELETE CASCADE, "
-              + "FOREIGN KEY (userId) REFERENCES users(username) ON DELETE CASCADE)";
+              + "FOREIGN KEY (adminUsername) REFERENCES admins(username) ON DELETE CASCADE)";
       stmt.executeUpdate(createBillsTableSQL);
       System.out.println("Table 'bills' created or already exists.");
+
+      // Add default admin user (Only add if it is not there before)
+      String insertAdminSQL = "INSERT INTO admins (username, password) SELECT * FROM (SELECT 'admin', 'password') AS tmp WHERE NOT EXISTS (SELECT username FROM admins WHERE username = 'admin')";
+      stmt.executeUpdate(insertAdminSQL);
+      System.out.println("Default admin user ensured.");
+
     } catch (SQLException e) {
       System.err.println("Error creating tables: " + e.getMessage());
       throw new RuntimeException("Failed to create tables", e);
     }
   }
 
-  public static boolean userExists(String username) {
+  public static boolean adminExists(String username) {
     if (username == null || username.trim().isEmpty()) {
       return false;
     }
 
     try (Connection conn = getConnection();
-        PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM users WHERE username = ?")) {
+        PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM admins WHERE username = ?")) {
       pstmt.setString(1, username);
       try (ResultSet rs = pstmt.executeQuery()) {
         return rs.next();
       }
     } catch (SQLException e) {
-      System.err.println("Error checking user existence: " + e.getMessage());
+      System.err.println("Error checking admin existence: " + e.getMessage());
+      return false;
+    }
+  }
+
+  public static boolean sellerExists(String sellerName) {
+    if (sellerName == null || sellerName.trim().isEmpty()) {
+      return false;
+    }
+
+    try (Connection conn = getConnection();
+        PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM sellers WHERE sellerName = ?")) {
+      pstmt.setString(1, sellerName);
+      try (ResultSet rs = pstmt.executeQuery()) {
+        return rs.next();
+      }
+    } catch (SQLException e) {
+      System.err.println("Error checking seller existence: " + e.getMessage());
       return false;
     }
   }
@@ -177,7 +205,7 @@ public class DatabaseConnection {
     }
 
     // First, check if the seller exists
-    if (!userExists(seller)) {
+    if (!sellerExists(seller)) {
       System.err.println("Error: Seller '" + seller + "' does not exist.");
       return false;
     }
@@ -202,4 +230,36 @@ public class DatabaseConnection {
       return false;
     }
   }
+
+  public static boolean addSeller(String sellerName) {
+    if (sellerName == null || sellerName.trim().isEmpty()) {
+      return false;
+    }
+
+    try (Connection conn = getConnection();
+        PreparedStatement pstmt =
+            conn.prepareStatement("INSERT INTO sellers (sellerName) VALUES (?)")) {
+      pstmt.setString(1, sellerName);
+      return pstmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+      System.err.println("Error adding seller: " + e.getMessage());
+      return false;
+    }
+  }
+
+  public static boolean addAdmin(String username, String password) {
+    if (username == null || username.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+      return false;
+    }
+    try (Connection conn = getConnection();
+         PreparedStatement pstmt = conn.prepareStatement("INSERT INTO admins (username, password) VALUES (?, ?)")) {
+      pstmt.setString(1, username);
+      pstmt.setString(2, password);
+      return pstmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+      System.err.println("Error adding admin: " + e.getMessage());
+      return false;
+    }
+  }
+
 }

@@ -10,11 +10,11 @@ import java.util.List;
 public class ReviewsManager {
 
     public boolean addReview(String seller, String reviewer, int rating, String comment) {
-        if (!DatabaseConnection.userExists(seller)) {
+        if (!DatabaseConnection.sellerExists(seller)) { // Changed method call
             System.err.println("Error: Seller '" + seller + "' does not exist.");
             return false;
         }
-        if (!DatabaseConnection.userExists(reviewer)) {
+        if (!DatabaseConnection.adminExists(reviewer)) { // Check that reviewer exists in admins table.
             System.err.println("Error: Reviewer '" + reviewer + "' does not exist.");
             return false;
         }

@@ -12,11 +12,11 @@ public class MainFrame extends JFrame {
     private DatabaseConfigPanel dbConfigPanel;
     private LoginPanel loginPanel;
     private InventoryPanel inventoryPanel;
-    private BillingPanel billingPanel;  //add for new panel.
+    private BillingPanel billingPanel;
     private StockPanel stockPanel;
+    private DashboardPanel dashboardPanel;  // Add this line
 
     public MainFrame() {
-        System.out.println("MainFrame() constructor called");
         setTitle("TechTrove");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 600);
@@ -28,15 +28,12 @@ public class MainFrame extends JFrame {
         dbConfigPanel = new DatabaseConfigPanel(this);
         loginPanel = new LoginPanel(this);
 
-
         mainPanel.add(dbConfigPanel, "DBConfig");
         mainPanel.add(loginPanel, "Login");
 
         add(mainPanel);
 
-        // Initially show the DatabaseConfigPanel
         cardLayout.show(mainPanel, "DBConfig");
-
         setVisible(true);
     }
 
@@ -50,25 +47,23 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainPanel, "Inventory");
     }
 
-     public void showBillingPanel(User loggedInUser, MainFrame mainFrame) {
-         billingPanel = new BillingPanel(loggedInUser, this);
-         mainPanel.add(billingPanel, "Billing");
-         cardLayout.show(mainPanel, "Billing");
+    public void showBillingPanel(User loggedInUser, MainFrame mainFrame) {
+        billingPanel = new BillingPanel(loggedInUser, this);
+        mainPanel.add(billingPanel, "Billing");
+        cardLayout.show(mainPanel, "Billing");
     }
 
-    public void showDashboardPanel(User loggedInUser) {  //To account for Login, pass the user that is logged in as argument
-        inventoryPanel = new InventoryPanel(loggedInUser, this);  //Update the InventoryPanel and pass the user as parameter
-        mainPanel.add(inventoryPanel, "Inventory");
-        cardLayout.show(mainPanel, "Inventory");
+    public void showStockPanel(User loggedInUser, MainFrame mainFrame) {
+        stockPanel = new StockPanel(loggedInUser, mainFrame);
+        mainPanel.add(stockPanel, "Stock");
+        cardLayout.show(mainPanel, "Stock");
     }
 
-    public void showStockPanel(User user, MainFrame frame) {
-    setContentPane(new StockPanel(user, frame));
-    revalidate();
-    repaint();
-}
-
-
+    public void showDashboardPanel(User loggedInUser) {
+        dashboardPanel = new DashboardPanel(this, loggedInUser); // Correct instantiation
+        mainPanel.add(dashboardPanel, "Dashboard");
+        cardLayout.show(mainPanel, "Dashboard");
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new MainFrame());

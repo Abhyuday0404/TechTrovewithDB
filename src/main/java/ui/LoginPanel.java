@@ -29,7 +29,7 @@ public class LoginPanel extends JPanel {
         contentPanel.setBackground(Color.WHITE); // Set background to white
 
         // 2. Title
-        JLabel titleLabel = new JLabel("User Login");
+        JLabel titleLabel = new JLabel("Admin Login"); //Change title to admin
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center title
         contentPanel.add(titleLabel);
@@ -84,7 +84,7 @@ public class LoginPanel extends JPanel {
                 String username = usernameField.getText();
                 String password = new String(passwordField.getPassword());
                 try {
-                    User loggedInUser = authManager.loginUser(username, password);
+                    User loggedInUser = authManager.loginAdmin(username, password); //Changed to loginAdmin.
                     JOptionPane.showMessageDialog(LoginPanel.this, "Login successful!");
                     mainFrame.showDashboardPanel(loggedInUser);
 

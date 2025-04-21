@@ -12,7 +12,8 @@ public class MainFrame extends JFrame {
     private DatabaseConfigPanel dbConfigPanel;
     private LoginPanel loginPanel;
     private InventoryPanel inventoryPanel;
-    private DashboardPanel dashboardPanel;
+    private BillingPanel billingPanel;  //add for new panel.
+    private StockPanel stockPanel;
 
     public MainFrame() {
         System.out.println("MainFrame() constructor called");
@@ -26,14 +27,10 @@ public class MainFrame extends JFrame {
 
         dbConfigPanel = new DatabaseConfigPanel(this);
         loginPanel = new LoginPanel(this);
-         dashboardPanel = new DashboardPanel(this);  //Added for menu
-        // inventoryPanel = new InventoryPanel(user, this);
 
 
         mainPanel.add(dbConfigPanel, "DBConfig");
         mainPanel.add(loginPanel, "Login");
-         mainPanel.add(dashboardPanel, "Dashboard");  //Added for menu
-       //  mainPanel.add(inventoryPanel, "Inventory");
 
         add(mainPanel);
 
@@ -53,14 +50,25 @@ public class MainFrame extends JFrame {
         cardLayout.show(mainPanel, "Inventory");
     }
 
-    public void showDashboardPanel() {
-        System.out.println("showDashboardPanel() called");
-        if (dashboardPanel == null) {
-            dashboardPanel = new DashboardPanel(this);
-        }
-        mainPanel.add(dashboardPanel, "Dashboard");
-        cardLayout.show(mainPanel, "Dashboard");
+     public void showBillingPanel(User loggedInUser, MainFrame mainFrame) {
+         billingPanel = new BillingPanel(loggedInUser, this);
+         mainPanel.add(billingPanel, "Billing");
+         cardLayout.show(mainPanel, "Billing");
     }
+
+    public void showDashboardPanel(User loggedInUser) {  //To account for Login, pass the user that is logged in as argument
+        inventoryPanel = new InventoryPanel(loggedInUser, this);  //Update the InventoryPanel and pass the user as parameter
+        mainPanel.add(inventoryPanel, "Inventory");
+        cardLayout.show(mainPanel, "Inventory");
+    }
+
+    public void showStockPanel(User user, MainFrame frame) {
+    setContentPane(new StockPanel(user, frame));
+    revalidate();
+    repaint();
+}
+
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new MainFrame());

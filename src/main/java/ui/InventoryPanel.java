@@ -21,6 +21,7 @@ public class InventoryPanel extends JPanel {
     private MainFrame mainFrame; // Reference to MainFrame
     private static final String APP_NAME = "TechTrove";
     private JButton inventoryButton, stockTrackingButton, billingButton, logoutButton;  //Navigation Button
+    private JTextArea stockAlertsArea;  // Added a jtext area
 
     public InventoryPanel(User loggedInUser, MainFrame mainFrame) {
         this.loggedInUser = loggedInUser;
@@ -88,6 +89,14 @@ public class InventoryPanel extends JPanel {
         JScrollPane tableScrollPane = new JScrollPane(productTable);
 
         contentPanel.add(tableScrollPane); // Add the table scroll pane to the content panel
+
+         //Add StockAlert side into the Inventory list/Table
+        stockAlertsArea = new JTextArea();
+        stockAlertsArea.setEditable(false);
+        JScrollPane stockAlertsScrollPane = new JScrollPane(stockAlertsArea);
+      //  contentPanel.add(stockAlertsScrollPane); //Remove Table
+         remove(stockAlertsScrollPane);
+
         add(contentPanel, BorderLayout.CENTER);  // adding statsPanel in to the centre of the page
 
         //2. Button Panel
@@ -101,6 +110,8 @@ public class InventoryPanel extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
 
         loadProductsIntoTable(""); // Load all products initially
+      //  displayStockLevels();  //Remove Alert Here
+
         // 3. Load Data & Button Actions
 
         //Button Actions
@@ -141,13 +152,31 @@ public class InventoryPanel extends JPanel {
             }
         });
 
-        stockTrackingButton.addActionListener(new ActionListener() { //Adding side menu functionality of stockalert
+        //adding Action Listener into billing
+         billingButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String stockLevels = inventoryManager.checkStockLevels();
-                JOptionPane.showMessageDialog(InventoryPanel.this, stockLevels, "Stock Levels", JOptionPane.INFORMATION_MESSAGE);
+                mainFrame.showBillingPanel(loggedInUser, mainFrame); //Navigate to new page
+
             }
         });
+
+        //Adding side menu function of stockalert
+        stockTrackingButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               mainFrame.showStockPanel(loggedInUser, mainFrame); //Navigate page
+            }
+        });
+
+          inventoryButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               // mainFrame.showInventoryPanel(null); //Need to check for the use of login user or not
+                mainFrame.showInventoryPanel(loggedInUser, mainFrame);
+            }
+        });
+
 
 
     }
@@ -246,17 +275,8 @@ public class InventoryPanel extends JPanel {
     }
 
     private void displayStockLevels() {
-        inventoryManager.checkStockLevels();
-
-        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-        java.io.PrintStream ps = new java.io.PrintStream(out);
-        System.setOut(ps);
-
-        inventoryManager.checkStockLevels();
-
-        System.setOut(System.out);
-
-        // displayArea.setText(out.toString());
+        String stockLevels = inventoryManager.checkStockLevels(); // Call to action of chekcing stock levels
+       // stockAlertsArea.setText(stockLevels);   //Push into the jtext
     }
 
 }

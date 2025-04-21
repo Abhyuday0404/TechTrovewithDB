@@ -2,8 +2,8 @@ package main.java.management;
 
 import main.java.entities.Product;
 import main.java.entities.Transaction;
-import main.java.exceptions.InsufficientStockException;
 import main.java.exceptions.InvalidProductIdException;
+import main.java.exceptions.InsufficientStockException; //ADDED
 import main.java.storage.DatabaseConnection;
 
 import java.sql.Connection;
@@ -18,68 +18,91 @@ import java.util.UUID;
 
 public class BillingManager {
 
-    // In BillingManager.java , createTransaction method
+    public void createTransaction(String productId, int quantitySold, String userId)  {
+        try {
+            Product product = findProductById(productId);
+            double unitPrice = product.getRate();
+            double totalAmount = unitPrice * quantitySold;
 
-public void createTransaction(String productId, int quantitySold, String userId) {
-    try {
-        Product product = findProductById(productId);
-        int currentQuantity = getProductQuantity(productId);
+            //Check for InsufficientStock and also update it, or return an appropriate Error
+            int currentQuantity = getProductQuantity(productId);  //Get current quantity
+            if (currentQuantity < quantitySold) {
+              System.out.println("Not enough stock"); // just return in System. out, without throwing
+              return;
+            }
 
-        if (currentQuantity < quantitySold) {
-            throw new InsufficientStockException("Insufficient stock for product: " + product.getName());
+            int newQuantity = currentQuantity - quantitySold;
+
+            String billId = UUID.randomUUID().toString();
+            Date saleDate = new Date();
+
+            String sql = "INSERT INTO bills (billId, productId, quantitySold, totalAmount, billDate, userId) VALUES (?, ?, ?, ?, ?, ?)";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setString(1, billId);
+                stmt.setString(2, productId);
+                stmt.setInt(3, quantitySold);
+                stmt.setDouble(4, totalAmount);
+                stmt.setTimestamp(5, new Timestamp(saleDate.getTime()));
+                stmt.setString(6, userId);
+
+                int affectedRows = stmt.executeUpdate();
+                if (affectedRows > 0) {
+                    // If adding transaction works then update product
+                   boolean updateSuccessful = updateProductQuantity(productId, newQuantity); //Update quantity of proudcts
+
+                   if(updateSuccessful){  //Check if successfully updated
+                      System.out.println("Transaction created successfully. billId ID: " + billId + " and updated product");
+                   } else{ //If the update doesn't work then do something
+                       System.out.println("Create Transaction Success but not Update product");  //For now, just sysout
+                   }
+
+
+
+                } else {
+                    System.out.println("Failed to create transaction.");
+                }
+
+
+            } catch (SQLException e) {
+                System.err.println("Error adding transaction: " + e.getMessage());
+            }
+
+        } catch (InvalidProductIdException e) {
+            System.out.println(e.getMessage());
         }
+    }
 
-        String transactionId = UUID.randomUUID().toString();
-        Date saleDate = new Date(); // Current date/time
-        Transaction transaction = new Transaction(transactionId, productId, quantitySold, saleDate, userId);
-
-        String sql = "INSERT INTO transactions (transactionId, productId, quantitySold, saleDate, userId) VALUES (?, ?, ?, ?, ?)";
+     public boolean updateProductQuantity(String productId, int newQuantity) {  //added
+        String sql = "UPDATE products SET quantity = ? WHERE productId = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, transaction.getTransactionId());
-            stmt.setString(2, transaction.getProductId());
-            stmt.setInt(3, transaction.getQuantitySold());
-            stmt.setTimestamp(4, new Timestamp(transaction.getSaleDate().getTime()));
-            stmt.setString(5, transaction.getUserId());
+            stmt.setInt(1, newQuantity);
+            stmt.setString(2, productId);
 
             int affectedRows = stmt.executeUpdate();
-            if (affectedRows > 0) {
-                int newQuantity = currentQuantity - quantitySold;
-                if (updateProductQuantity(productId, newQuantity)) {
-                    System.out.println("Transaction created successfully. Transaction ID: " + transactionId);
-                } else {
-                    System.out.println("Failed to update product quantity. Rolling back transaction.");
-                    // You would need to implement a deleteTransaction() method in InMemoryStorage
-                }
-
-            } else {
-                System.out.println("Failed to create transaction.");
-            }
-
-
+            return affectedRows > 0;
         } catch (SQLException e) {
-            System.err.println("Error adding transaction: " + e.getMessage());
+            System.err.println("Error updating product quantity: " + e.getMessage());
+            return false;
         }
-
-    } catch (InvalidProductIdException | InsufficientStockException e) {
-        System.out.println(e.getMessage());
     }
-}
 
     public List<Transaction> listTransactions() {
         List<Transaction> transactions = new ArrayList<Transaction>(); // Diamond operator removed
-        String sql = "SELECT transactionId, productId, quantitySold, saleDate, userId FROM transactions";
+        String sql = "SELECT billId, productId, quantitySold, billDate, userId FROM bills";  //Select from bills
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 Transaction transaction = new Transaction(
-                        rs.getString("transactionId"),
+                        rs.getString("billId"),
                         rs.getString("productId"),
                         rs.getInt("quantitySold"),
-                        rs.getTimestamp("saleDate"),
+                        rs.getTimestamp("billDate"),
                         rs.getString("userId")
                 );
                 transactions.add(transaction);
@@ -116,23 +139,7 @@ public void createTransaction(String productId, int quantitySold, String userId)
         }
     }
 
-     public boolean updateProductQuantity(String productId, int newQuantity) {
-        String sql = "UPDATE products SET quantity = ? WHERE productId = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, newQuantity);
-            stmt.setString(2, productId);
-
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            System.err.println("Error updating product quantity: " + e.getMessage());
-            return false;
-        }
-    }
-
-     public int getProductQuantity(String productId) {
+     public int getProductQuantity(String productId) {  //added
         String sql = "SELECT quantity FROM products WHERE productId = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -141,11 +148,14 @@ public void createTransaction(String productId, int quantitySold, String userId)
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("quantity");
+                } else {
+                    return 0;  //Or something else. or throw exceptions
                 }
             }
         } catch (SQLException e) {
             System.err.println("Error getting product quantity: " + e.getMessage());
+           return 0;  //Or something else. or throw exceptions
         }
-        return -1; // Or throw an exception if product not found
     }
+
 }
